@@ -57,6 +57,7 @@ func (bps BuiltPipelines) StartProcessors(ctx context.Context, host component.Ho
 		// data to later pipelines which are not yet started.
 		for i := len(bp.processors) - 1; i >= 0; i-- {
 			if err := bp.processors[i].Start(ctx, hostWrapper); err != nil {
+				fmt.Println(err)
 				return err
 			}
 		}

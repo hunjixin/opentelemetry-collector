@@ -44,6 +44,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.6 // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/xdg-go/scram v1.0.2
+	go.mongodb.org/mongo-driver v1.7.0 // indirect
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/collector/model v0.30.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.21.0

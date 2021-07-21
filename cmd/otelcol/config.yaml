@@ -1,18 +1,7 @@
 extensions:
   health_check:
-  pprof:
-    endpoint: 0.0.0.0:1777
-  zpages:
-    endpoint: 0.0.0.0:55679
 
 receivers:
-  otlp:
-    protocols:
-      grpc:
-      http:
-
-  opencensus:
-
   # Collect own metrics
   prometheus:
     config:
@@ -25,31 +14,44 @@ receivers:
   jaeger:
     protocols:
       grpc:
-      thrift_binary:
+        endpoint: 0.0.0.0:14250
       thrift_compact:
+        endpoint: 0.0.0.0:6831
       thrift_http:
-
-  zipkin:
+        endpoint: 0.0.0.0:14268
 
 processors:
+#  span:
+#    include:
+#      match_type:  attributes
+#      attributes:
+#        - key: "method"
+#    name:
+#      from_attributes: ["method"]
   batch:
+
 
 exporters:
   logging:
     logLevel: debug
+  file:
+    path: ./filename.json
+  mongo:
+    url: "mongodb://8.130.164.80:27017"
+    tag: "method"
 
 service:
 
   pipelines:
 
     traces:
-      receivers: [otlp, opencensus, jaeger, zipkin]
+      receivers: [jaeger]
       processors: [batch]
-      exporters: [logging]
+      exporters: [mongo]
 
     metrics:
-      receivers: [otlp, opencensus, prometheus]
+      receivers: [prometheus]
       processors: [batch]
       exporters: [logging]
 
-  extensions: [health_check, pprof, zpages]
+  extensions: [health_check]
