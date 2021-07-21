@@ -75,10 +75,8 @@ func (e *mongoExporter) ConsumeTraces(_ context.Context, td pdata.Traces) error 
 						foundAccount = true
 						call.Name = tag.VStr
 					}
-					if tag.Key == "startTime" {
-						call.Time = time.Unix(tag.VInt64, 0)
-					}
 				}
+				call.Time = span.StartTime
 			}
 		}
 		if foundMethod && foundAccount {
