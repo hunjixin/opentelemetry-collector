@@ -75,6 +75,14 @@ func (e *mongoExporter) ConsumeTraces(_ context.Context, td pdata.Traces) error 
 					}
 				}
 			}
+			if span.OperationName == "JWTClient.verify" {
+				for _, tag := range span.Tags {
+					if tag.Key == "Account" {
+						call.Name = tag.VStr
+					}
+				}
+			}
+
 		}
 		if !foundMethod {
 			continue
