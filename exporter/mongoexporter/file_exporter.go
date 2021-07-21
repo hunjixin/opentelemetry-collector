@@ -62,6 +62,7 @@ func (e *mongoExporter) ConsumeTraces(_ context.Context, td pdata.Traces) error 
 	//var many []interface{}
 	for _, m := range batches {
 		var foundMethod bool
+		var foundAccount bool
 		var call Call
 		for _, span := range m.Spans {
 			if span.OperationName == "api.handle" {
@@ -70,31 +71,25 @@ func (e *mongoExporter) ConsumeTraces(_ context.Context, td pdata.Traces) error 
 						foundMethod = true
 						call.Method = tag.VStr
 					}
-					if tag.Key == "user" {
-						call.Name = tag.VStr
-					}
-				}
-			}
-			if span.OperationName == "JWTClient.verify" {
-				for _, tag := range span.Tags {
 					if tag.Key == "Account" {
+						foundAccount = true
 						call.Name = tag.VStr
+					}
+					if tag.Key == "startTime" {
+						call.Time = time.Unix(tag.VInt64, 0)
 					}
 				}
 			}
-
 		}
-		if !foundMethod {
-			continue
-		}
+		if foundMethod && foundAccount {
+			if m.Process != nil {
+				call.Service = m.Process.ServiceName
+			}
 
-		if m.Process != nil {
-			call.Service = m.Process.ServiceName
-		}
-
-		_, err = e.mongoCol.InsertOne(context.TODO(), call)
-		if err != nil {
-			return err
+			_, err = e.mongoCol.InsertOne(context.TODO(), call)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -104,6 +99,7 @@ type Call struct {
 	Name    string
 	Service string
 	Method  string
+	Time    time.Time
 }
 
 func (e *mongoExporter) ConsumeMetrics(_ context.Context, md pdata.Metrics) error {
