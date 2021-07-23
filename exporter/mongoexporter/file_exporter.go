@@ -61,12 +61,11 @@ func (e *mongoExporter) ConsumeTraces(_ context.Context, td pdata.Traces) error 
 
 	//var many []interface{}
 	for _, m := range batches {
-
 		var call Call
 		for _, span := range m.Spans {
-			var foundMethod bool
-			var foundAccount bool
 			if span.OperationName == "api.handle" {
+				var foundMethod bool
+				var foundAccount bool
 				for _, tag := range span.Tags {
 					if tag.Key == "method" {
 						foundMethod = true
@@ -78,14 +77,14 @@ func (e *mongoExporter) ConsumeTraces(_ context.Context, td pdata.Traces) error 
 					}
 				}
 				call.Time = span.StartTime
-			}
-			if foundMethod && foundAccount {
-				if m.Process != nil {
-					call.Service = m.Process.ServiceName
-				}
-				_, err = e.mongoCol.InsertOne(context.TODO(), call)
-				if err != nil {
-					return err
+				if foundMethod && foundAccount {
+					if m.Process != nil {
+						call.Service = m.Process.ServiceName
+					}
+					_, err = e.mongoCol.InsertOne(context.TODO(), call)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
