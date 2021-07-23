@@ -61,34 +61,35 @@ func (e *mongoExporter) ConsumeTraces(_ context.Context, td pdata.Traces) error 
 
 	//var many []interface{}
 	for _, m := range batches {
-		var foundMethod bool
-		var foundAccount bool
+
 		var call Call
 		for _, span := range m.Spans {
+			var foundMethod bool
+			var foundAccount bool
 			if span.OperationName == "api.handle" {
 				for _, tag := range span.Tags {
 					if tag.Key == "method" {
 						foundMethod = true
 						call.Method = tag.VStr
 					}
-					if tag.Key == "Account" {
+					if tag.Key == "account" {
 						foundAccount = true
 						call.Name = tag.VStr
 					}
 				}
 				call.Time = span.StartTime
 			}
-		}
-		if foundMethod && foundAccount {
-			if m.Process != nil {
-				call.Service = m.Process.ServiceName
+			if foundMethod && foundAccount {
+				if m.Process != nil {
+					call.Service = m.Process.ServiceName
+				}
+				_, err = e.mongoCol.InsertOne(context.TODO(), call)
+				if err != nil {
+					return err
+				}
 			}
+		}
 
-			_, err = e.mongoCol.InsertOne(context.TODO(), call)
-			if err != nil {
-				return err
-			}
-		}
 	}
 	return nil
 }
